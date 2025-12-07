@@ -1,0 +1,309 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pod Squad | Anderson Valley Wine Trail 2025</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #f8f5f0, #e8e2d9); min-height: 100vh; color: #4a4a4a; }
+        .header { background: linear-gradient(135deg, #2d1b2e, #722f37); padding: 1.5rem 2rem; color: #f8f5f0; }
+        .header h1 { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; font-weight: 300; }
+        .header h1 span { color: #c9a962; }
+        .stats-bar { background: white; padding: 1rem 2rem; display: flex; justify-content: space-around; flex-wrap: wrap; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .stat { text-align: center; padding: 0.5rem 1.5rem; }
+        .stat-value { font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: #722f37; }
+        .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #7d8471; }
+        .main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
+        .filters { background: white; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .filters input, .filters select { padding: 0.6rem 1rem; border: 1px solid #e8e2d9; border-radius: 6px; font-family: 'Outfit', sans-serif; background: #f8f5f0; }
+        .filters input { flex: 1; min-width: 200px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1.5rem; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; }
+        .card.must-visit { border: 2px solid #d4af37; }
+        .card.confirmed { border-left: 4px solid #2196F3; }
+        .card-header { background: linear-gradient(135deg, #2d1b2e, #722f37); padding: 1rem 1.25rem; color: #f8f5f0; }
+        .card-header h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; margin-bottom: 0.25rem; }
+        .card-header .address { font-size: 0.7rem; opacity: 0.6; }
+        .rating { position: absolute; top: 1rem; right: 1rem; background: #c9a962; color: #2d1b2e; padding: 0.3rem 0.6rem; border-radius: 6px; font-weight: 600; }
+        .links { display: flex; gap: 0.4rem; margin-top: 0.75rem; flex-wrap: wrap; }
+        .links a { font-size: 0.65rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.15); color: #f8f5f0; text-decoration: none; border-radius: 4px; }
+        .links a:hover { background: rgba(255,255,255,0.25); }
+        .card-body { padding: 1rem 1.25rem; }
+        .quote { font-style: italic; color: #7d8471; font-size: 0.8rem; padding: 0.6rem; background: #f8f5f0; border-left: 3px solid #c9a962; margin-bottom: 0.75rem; border-radius: 0 6px 6px 0; }
+        .tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+        .tag { font-size: 0.6rem; padding: 0.2rem 0.4rem; border-radius: 4px; }
+        .tag.info { background: #e3f2fd; color: #1976d2; }
+        .tag.good { background: rgba(74,124,89,0.15); color: #4a7c59; }
+        .tag.food { background: rgba(255,152,0,0.15); color: #f57c00; }
+        .family-box { background: rgba(74,124,89,0.1); border: 1px solid rgba(74,124,89,0.2); border-radius: 8px; padding: 0.6rem; margin-bottom: 0.75rem; }
+        .family-box-title { font-size: 0.65rem; color: #4a7c59; font-weight: 600; margin-bottom: 0.25rem; }
+        .family-box p { font-size: 0.75rem; margin: 0; }
+        .special { font-size: 0.75rem; color: #7d8471; margin-bottom: 0.75rem; }
+        .voting { border-top: 1px solid #e8e2d9; padding-top: 0.75rem; margin-top: 0.75rem; }
+        .voting-title { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #7d8471; margin-bottom: 0.5rem; }
+        .voter { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; padding: 0.4rem; background: #f8f5f0; border-radius: 6px; }
+        .avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.6rem; font-weight: 600; }
+        .avatar.mike { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .avatar.allie { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .avatar.katie { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .avatar.nick { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .voter-name { font-size: 0.75rem; font-weight: 500; min-width: 40px; }
+        .voter select { flex: 1; padding: 0.3rem; font-size: 0.7rem; border-radius: 4px; border: 1px solid #e8e2d9; }
+        .voter select.active { border: 2px solid #c9a962; background: rgba(201,169,98,0.1); }
+        .voter select:disabled { opacity: 0.6; }
+        .day-pref { margin-top: 0.75rem; }
+        .day-pref label { font-size: 0.65rem; color: #7d8471; display: block; margin-bottom: 0.3rem; }
+        .day-btns { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+        .day-btn { padding: 0.3rem 0.5rem; font-size: 0.65rem; border-radius: 4px; border: 1px solid #e8e2d9; cursor: pointer; background: white; }
+        .day-btn:hover { border-color: #c9a962; }
+        .day-btn.selected { background: #722f37; color: white; border-color: #722f37; }
+        .day-btn.flex { background: #7d8471; color: white; border-color: #7d8471; }
+        .booking { margin-top: 0.75rem; padding: 0.75rem; background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1)); border-radius: 8px; border: 1px solid rgba(102,126,234,0.2); }
+        .booking-title { font-size: 0.7rem; color: #667eea; font-weight: 600; margin-bottom: 0.5rem; }
+        .booking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+        .booking-grid label { font-size: 0.6rem; color: #7d8471; }
+        .booking-grid input, .booking-grid select { width: 100%; padding: 0.3rem; font-size: 0.7rem; border-radius: 4px; border: 1px solid #e8e2d9; }
+        .booking-grid .full { grid-column: span 2; }
+        .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: #2d1b2e; color: white; padding: 0.75rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); opacity: 0; transition: all 0.3s; z-index: 1000; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .must-badge { position: absolute; top: 12px; right: -24px; background: #d4af37; color: #2d1b2e; padding: 0.2rem 2rem; font-size: 0.55rem; font-weight: 700; transform: rotate(45deg); z-index: 10; letter-spacing: 0.05em; }
+        .user-select { position: fixed; top: 1rem; right: 1rem; z-index: 100; background: white; padding: 0.6rem 1rem; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 0.5rem; }
+        .user-select label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #7d8471; }
+        .user-select select { padding: 0.4rem 0.8rem; border: 2px solid #c9a962; border-radius: 6px; font-weight: 600; }
+        .trip-dates { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+        .date-badge { background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid rgba(201,169,98,0.3); }
+        .date-badge strong { color: #c9a962; display: block; }
+        .date-badge span { font-size: 0.7rem; opacity: 0.8; }
+        .group-info { display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.85rem; flex-wrap: wrap; }
+        @media (max-width: 500px) { .grid { grid-template-columns: 1fr; } .header h1 { font-size: 1.8rem; } }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const wineries = [
+            { id: 1, name: "Greenwood Ridge Vineyards", address: "5501 CA-128, Philo", rating: 4.3, reviews: 57, quote: "Super friendly, the best wines, and a beautiful experience!", hours: "Thu-Tue 11AM-5PM", fee: "$10", website: "https://greenwoodridge.com", maps: "https://maps.google.com/?q=Greenwood+Ridge+Vineyards+Philo+CA", yelp: "https://www.yelp.com/biz/greenwood-ridge-vineyards-philo", phone: "(707) 895-2002", mustVisit: true, kidOk: true, dogOk: true, food: false, family: "Outdoor picnic tables, bocce ball. Great for kids to run around. Frank Lloyd Wright design.", special: "Nick & Allie's favorite! Walk-ins OK.", votes: {}, days: {}, booking: { status: "pending", date: "", time: "", notes: "" } },
+            { id: 2, name: "Toulouse Vineyards", address: "8001 CA-128, Philo", rating: 4.9, reviews: 117, quote: "The views are stunning and the wine is delicious.", hours: "Daily 11AM-4PM", fee: "$20", website: "https://www.toulousevineyards.com", maps: "https://maps.google.com/?q=Toulouse+Vineyards+Philo+CA", yelp: "https://www.yelp.com/biz/toulouse-vineyards-and-winery-philo", phone: "(707) 895-2828", mustVisit: true, kidOk: true, dogOk: true, food: true, family: "Beautiful patio with stunning valley views. Food available for hungry kids.", special: "Katie's suggestion! Opens at 11AM.", votes: {}, days: {}, booking: { status: "pending", date: "", time: "", notes: "" } },
+            { id: 3, name: "Pennyroyal Farm", address: "14930 CA-128, Boonville", rating: 4.7, reviews: 188, quote: "Great wine, great cheese, and stunning patio views.", hours: "Daily 11AM-5PM", fee: "$25", website: "https://pennyroyalfarm.com", maps: "https://maps.google.com/?q=Pennyroyal+Farm+Boonville+CA", yelp: "https://www.yelp.com/biz/pennyroyal-farm-boonville", phone: "(707) 895-2410", mustVisit: true, kidOk: true, dogOk: true, food: true, family: "PERFECT for families! Working goat farm. Kids can see animals. Full food menu.", special: "Ideal for departure day (Dec 29). Goat cheese pairings!", votes: {}, days: {}, booking: { status: "pending", date: "", time: "", notes: "" } },
+            { id: 4, name: "Husch Vineyards", address: "4400 CA-128, Philo", rating: 4.9, reviews: 92, quote: "Love the wines, great prices and no tasting fee.", hours: "Daily 10AM-5PM", fee: "FREE", website: "https://www.huschvineyards.com", maps: "https://maps.google.com/?q=Husch+Vineyards+Philo+CA", yelp: "https://www.yelp.com/biz/husch-vineyards-philo", phone: "(707) 895-3216", mustVisit: false, kidOk: true, dogOk: true, food: false, family: "Relaxed vibe. Picnic grounds under old oak trees. No tasting fee!", special: "Oldest winery in Anderson Valley (est. 1971)", votes: {}, days: {}, booking: { status: "pending", date: "", time: "", notes: "" } },
+            { id: 5, name: "Navarro Vineyards", address: "5601 CA-128, Philo", rating: 4.7, reviews: 187, quote: "Beautiful winery pleasant staff excellent wine.", hours: "Daily 10AM-5PM", fee: "FREE", website: "https://www.navarrowine.com", maps: "https://maps.google.com/?q=Navarro+Vineyards+Philo+CA", yelp: "https://www.yelp.com/biz/navarro-vineyards-philo", phone: "(707) 895-3686", mustVisit: false, kidOk: true, dogOk: false, food: false, family: "They make GRAPE JUICE for kids! Beautiful picnic area.", special: "FREE tasting! Famous for Gewürztraminer.", votes: {}, days: {}, booking: { status: "pending", date: "", time: "", notes: "" } },
+            { id: 6, name: "Roederer Estate", address: "4501 CA-128, Philo", rating: 4.7, reviews: 113, quote: "Sublime natural setting and delicious wines.", hours: "Daily 11AM-5PM", fee: "$30-45", website: "https://www.roedererestate.com", maps: "https://maps.google.com/?q=Roederer+Estate+Philo+CA", yelp: "https://www.yelp.com/biz/roederer-estate-philo", phone: "(707) 895-2288", mustVisit: true, kidOk: false, dogOk: false, food: true, family: "Upscale/formal experience. NOT kid-friendly. Maybe adults-only visit?", special: "World-class French sparkling wine. Reservations required.", votes: {}, days: {}, booking: { status: "pending", date: "", time: "", notes: "" } },
+            { id: 7, name: "Lula Cellars", address: "2800 Guntly Rd, Philo", rating: 4.9, reviews: 103, quote: "Tastings are $10 and pours are generous.", hours: "Daily 11AM-5PM", fee: "$10", website: "https://www.lulacellars.com", maps: "https://maps.google.com/?q=Lula+Cellars+Philo+CA", yelp: "https://www.yelp.com/biz/lula-cellars-philo", phone: "(707) 895-3737", mustVisit: false, kidOk: true, dogOk: true, food: false, family: "Casual, welcoming vibe. Outdoor seating with valley views.", special: "Great value - generous pours!", votes: {}, days: {}, booking: { status: "pending", date: "", time: "", notes: "" } },
+            { id: 8, name: "Gowan's Cider", address: "6320 CA-128, Philo", rating: 4.9, reviews: 110, quote: "Something different - their cider is delicious.", hours: "Daily 11AM-5PM", fee: "$10-20", website: "https://www.gowanscider.com", maps: "https://maps.google.com/?q=Gowans+Cider+Philo+CA", yelp: "https://www.yelp.com/biz/gowans-oak-tree-philo", phone: "(707) 895-3353", mustVisit: false, kidOk: true, dogOk: true, food: true, family: "GREAT for families! Hard cider + apple juice for kids. Farm setting.", special: "Cider, not wine! Fun change of pace.", votes: {}, days: {}, booking: { status: "pending", date: "", time: "", notes: "" } },
+            { id: 9, name: "Handley Cellars", address: "3151 CA-128, Philo", rating: 4.8, reviews: 76, quote: "Great winery friendly staff wonderful tasting.", hours: "Daily 11AM-5PM", fee: "$15", website: "https://www.handleycellars.com", maps: "https://maps.google.com/?q=Handley+Cellars+Philo+CA", yelp: "https://www.yelp.com/biz/handley-cellars-philo", phone: "(707) 895-3876", mustVisit: false, kidOk: true, dogOk: true, food: false, family: "Beautiful gardens and folk art collection. Relaxed outdoor space.", special: "Woman-owned since 1982. Folk art gallery on site.", votes: {}, days: {}, booking: { status: "pending", date: "", time: "", notes: "" } },
+            { id: 10, name: "Foursight Wines", address: "14475 CA-128, Boonville", rating: 5.0, reviews: 28, quote: "Amazing wines - winemaker is super nice.", hours: "Fri-Mon 11AM-4:30PM", fee: "$15", website: "https://www.foursightwines.com", maps: "https://maps.google.com/?q=Foursight+Wines+Boonville+CA", yelp: "https://www.yelp.com/biz/foursight-wines-boonville", phone: "(707) 895-2889", mustVisit: false, kidOk: true, dogOk: true, food: false, family: "Small family winery, very welcoming atmosphere.", special: "Perfect 5.0 rating! Winemaker often there.", votes: {}, days: {}, booking: { status: "pending", date: "", time: "", notes: "" } },
+            { id: 11, name: "Disco Ranch", address: "14025 CA-128, Boonville", rating: 4.9, reviews: 96, quote: "Warm service, impeccably selected wine and snacks.", hours: "Daily 12PM-6PM", fee: "$20-30", website: "https://www.discoranchwine.com", maps: "https://maps.google.com/?q=Disco+Ranch+Boonville+CA", yelp: "https://www.yelp.com/biz/disco-ranch-boonville", phone: "(707) 895-2525", mustVisit: false, kidOk: true, dogOk: true, food: true, family: "Wine bar/shop vibe. Great snacks available.", special: "Open latest - until 6 PM!", votes: {}, days: {}, booking: { status: "pending", date: "", time: "", notes: "" } },
+            { id: 12, name: "Scharffenberger", address: "8501 CA-128, Philo", rating: 4.6, reviews: 71, quote: "Reasonably priced great quality sparkling wine.", hours: "Daily 11AM-4PM", fee: "$15", website: "https://www.scharffenbergercellars.com", maps: "https://maps.google.com/?q=Scharffenberger+Cellars+Philo+CA", yelp: "https://www.yelp.com/biz/scharffenberger-cellars-philo", phone: "(707) 895-2957", mustVisit: false, kidOk: true, dogOk: false, food: false, family: "Casual sparkling wine tasting. Nice picnic area.", special: "Excellent sparkling at good prices!", votes: {}, days: {}, booking: { status: "pending", date: "", time: "", notes: "" } },
+        ];
+
+        const members = ['Mike', 'Allie', 'Katie', 'Nick'];
+
+        function App() {
+            const [data, setData] = useState(wineries);
+            const [user, setUser] = useState('Mike');
+            const [search, setSearch] = useState('');
+            const [filter, setFilter] = useState('all');
+            const [toast, setToast] = useState('');
+
+            useEffect(() => {
+                const saved = localStorage.getItem('podsquad2025');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    setData(d => d.map(w => {
+                        const s = parsed.find(x => x.id === w.id);
+                        return s ? {...w, votes: s.votes || {}, days: s.days || {}, booking: s.booking || w.booking} : w;
+                    }));
+                }
+            }, []);
+
+            useEffect(() => {
+                localStorage.setItem('podsquad2025', JSON.stringify(data.map(w => ({id: w.id, votes: w.votes, days: w.days, booking: w.booking}))));
+            }, [data]);
+
+            const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500); };
+
+            const vote = (id, person, val) => {
+                setData(d => d.map(w => w.id === id ? {...w, votes: {...w.votes, [person]: val}} : w));
+                showToast(`${person}'s vote saved!`);
+            };
+
+            const toggleDay = (id, day) => {
+                setData(d => d.map(w => {
+                    if (w.id !== id) return w;
+                    const curr = (w.days[user] || '').split(',').filter(x => x);
+                    const next = day === 'flex' 
+                        ? (curr.includes('flex') ? [] : ['flex'])
+                        : (curr.includes(day) ? curr.filter(x => x !== day && x !== 'flex') : [...curr.filter(x => x !== 'flex'), day]);
+                    return {...w, days: {...w.days, [user]: next.join(',')}};
+                }));
+            };
+
+            const book = (id, field, val) => {
+                setData(d => d.map(w => w.id === id ? {...w, booking: {...w.booking, [field]: val}} : w));
+                if (field === 'status' && val === 'confirmed') showToast('🎉 Confirmed!');
+            };
+
+            const filtered = data
+                .filter(w => w.name.toLowerCase().includes(search.toLowerCase()))
+                .filter(w => filter === 'all' || (filter === 'must' && w.mustVisit) || (filter === 'kid' && w.kidOk) || (filter === 'food' && w.food) || (filter === 'free' && w.fee === 'FREE'))
+                .sort((a, b) => b.rating - a.rating);
+
+            const stats = { total: data.length, must: data.filter(w => w.mustVisit).length, kid: data.filter(w => w.kidOk).length, confirmed: data.filter(w => w.booking.status === 'confirmed').length };
+
+            return (
+                <>
+                    <div className="user-select">
+                        <label>Voting as:</label>
+                        <select value={user} onChange={e => setUser(e.target.value)}>
+                            {members.map(m => <option key={m}>{m}</option>)}
+                        </select>
+                    </div>
+
+                    <header className="header">
+                        <h1>Pod <span>Squad</span></h1>
+                        <p style={{opacity: 0.7, letterSpacing: '0.2em', fontSize: '0.8rem'}}>ANDERSON VALLEY WINE TRAIL • DECEMBER 2025</p>
+                        <div className="trip-dates">
+                            <div className="date-badge"><strong>Dec 26</strong><span>Travel In - 1 winery</span></div>
+                            <div className="date-badge"><strong>Dec 27</strong><span>Main Day - 3 wineries</span></div>
+                            <div className="date-badge"><strong>Dec 28</strong><span>Mendocino Town</span></div>
+                            <div className="date-badge"><strong>Dec 29</strong><span>Departure - 1 winery</span></div>
+                        </div>
+                        <div className="group-info">
+                            <span>👥 6 Adults</span>
+                            <span>👶 1 Toddler (3 yrs)</span>
+                            <span>🍼 1 Baby + Stroller</span>
+                            <span>🐕 Dog (at Airbnb)</span>
+                        </div>
+                    </header>
+
+                    <div className="stats-bar">
+                        <div className="stat"><div className="stat-value">{stats.total}</div><div className="stat-label">Wineries</div></div>
+                        <div className="stat"><div className="stat-value">{stats.must}</div><div className="stat-label">Must Visit</div></div>
+                        <div className="stat"><div className="stat-value">{stats.kid}</div><div className="stat-label">Kid Friendly</div></div>
+                        <div className="stat"><div className="stat-value">{stats.confirmed}</div><div className="stat-label">Confirmed</div></div>
+                    </div>
+
+                    <main className="main">
+                        <div className="filters">
+                            <input type="text" placeholder="Search wineries..." value={search} onChange={e => setSearch(e.target.value)} />
+                            <select value={filter} onChange={e => setFilter(e.target.value)}>
+                                <option value="all">All Wineries</option>
+                                <option value="must">Must Visit</option>
+                                <option value="kid">Kid Friendly</option>
+                                <option value="food">Has Food</option>
+                                <option value="free">Free Tasting</option>
+                            </select>
+                        </div>
+
+                        <div className="grid">
+                            {filtered.map(w => {
+                                const userDays = (w.days[user] || '').split(',').filter(x => x);
+                                return (
+                                    <div key={w.id} className={`card ${w.mustVisit ? 'must-visit' : ''} ${w.booking.status === 'confirmed' ? 'confirmed' : ''}`}>
+                                        {w.mustVisit && <div className="must-badge">★ MUST VISIT</div>}
+                                        <div className="rating">★ {w.rating}</div>
+                                        
+                                        <div className="card-header">
+                                            <h3>{w.name}</h3>
+                                            <p className="address">{w.address}</p>
+                                            <div className="links">
+                                                <a href={w.maps} target="_blank">📍 Maps</a>
+                                                <a href={w.website} target="_blank">🌐 Website</a>
+                                                <a href={w.yelp} target="_blank">⭐ Yelp</a>
+                                                <a href={`tel:${w.phone}`}>📞 {w.phone}</a>
+                                            </div>
+                                        </div>
+
+                                        <div className="card-body">
+                                            <div className="quote">"{w.quote}"</div>
+                                            
+                                            <div className="tags">
+                                                <span className="tag info">{w.hours}</span>
+                                                <span className="tag info">💵 {w.fee}</span>
+                                                {w.kidOk && <span className="tag good">👶 Kid OK</span>}
+                                                {w.dogOk && <span className="tag good">🐕 Dog OK</span>}
+                                                {w.food && <span className="tag food">🍽️ Food</span>}
+                                            </div>
+
+                                            <div className="family-box">
+                                                <div className="family-box-title">👨‍👩‍👧 FAMILY NOTES</div>
+                                                <p>{w.family}</p>
+                                            </div>
+
+                                            <p className="special">💡 {w.special}</p>
+
+                                            <div className="voting">
+                                                <div className="voting-title">Squad Interest</div>
+                                                {members.map(m => (
+                                                    <div key={m} className="voter">
+                                                        <div className={`avatar ${m.toLowerCase()}`}>{m[0]}</div>
+                                                        <span className="voter-name">{m}</span>
+                                                        <select 
+                                                            className={m === user ? 'active' : ''} 
+                                                            value={w.votes[m] || ''} 
+                                                            onChange={e => vote(w.id, m, e.target.value)} 
+                                                            disabled={m !== user}
+                                                        >
+                                                            <option value="">No vote</option>
+                                                            <option value="must">🌟 Must visit!</option>
+                                                            <option value="yes">👍 Interested</option>
+                                                            <option value="maybe">🤷 Either way</option>
+                                                            <option value="skip">👎 Skip</option>
+                                                        </select>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            <div className="day-pref">
+                                                <label>Your preferred day(s):</label>
+                                                <div className="day-btns">
+                                                    {['26', '27', '28', '29'].map(d => (
+                                                        <button key={d} className={`day-btn ${userDays.includes(d) ? 'selected' : ''}`} onClick={() => toggleDay(w.id, d)}>Dec {d}</button>
+                                                    ))}
+                                                    <button className={`day-btn ${userDays.includes('flex') ? 'flex' : ''}`} onClick={() => toggleDay(w.id, 'flex')}>🎲 Mike decides</button>
+                                                </div>
+                                            </div>
+
+                                            {user === 'Mike' && (
+                                                <div className="booking">
+                                                    <div className="booking-title">📞 MIKE'S BOOKING NOTES</div>
+                                                    <div className="booking-grid">
+                                                        <div><label>Date</label><input type="date" value={w.booking.date} onChange={e => book(w.id, 'date', e.target.value)} /></div>
+                                                        <div><label>Time</label><input type="time" value={w.booking.time} onChange={e => book(w.id, 'time', e.target.value)} /></div>
+                                                        <div className="full"><label>Notes</label><input type="text" placeholder="Call notes..." value={w.booking.notes} onChange={e => book(w.id, 'notes', e.target.value)} /></div>
+                                                        <div className="full">
+                                                            <select value={w.booking.status} onChange={e => book(w.id, 'status', e.target.value)}>
+                                                                <option value="pending">⏳ Pending Call</option>
+                                                                <option value="confirmed">✅ Confirmed</option>
+                                                                <option value="unavailable">❌ Unavailable</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </main>
+
+                    <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
+                </>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
