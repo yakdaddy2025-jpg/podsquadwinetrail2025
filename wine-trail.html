@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pod Squad | Anderson Valley Wine Trail</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, onSnapshot, query, where, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        // TODO: Replace with your Firebase config from your new wine trail project
+        const firebaseConfig = {
+            apiKey: "AIzaSyBzsfzzmDfrkzLTaT2dOavzc-1d3Qp3Y34",
+  authDomain: "podsquadwinetrail2025.firebaseapp.com",
+  projectId: "podsquadwinetrail2025",
+  storageBucket: "podsquadwinetrail2025.firebasestorage.app",
+  messagingSenderId: "953419176510",
+  appId: "1:953419176510:web:8f2a69fe015799f0be8f6f"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        window.firebaseDb = db;
+        window.firebaseAddDoc = addDoc;
+        window.firebaseCollection = collection;
+        window.firebaseOnSnapshot = onSnapshot;
+        window.firebaseQuery = query;
+        window.firebaseWhere = where;
+        window.firebaseOrderBy = orderBy;
+        window.firebaseServerTimestamp = serverTimestamp;
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+        }
+        
+        h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .user-badge {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .user-badge-text {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .change-identity-btn {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            background: #f3f4f6;
+            color: #4B5563;
+        }
+        
+        .change-identity-btn:hover {
+            background: #e5e7eb;
+        }
+        
+        /* Identity Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1F2937;
+            text-align: center;
+        }
+        
+        .modal-subtitle {
+            text-align: center;
+            color: #6B7280;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+        
+        .identity-select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-family: 'Outfit', sans-serif;
+            margin-bottom: 20px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        
+        .identity-select:focus {
+            outline: none;
+            border-color: #8B5CF6;
+        }
+        
+        .modal-button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .modal-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .wineries-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .winery-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .winery-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .winery-header {
+            background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+            color: white;
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        
+        .winery-header:hover {
+            background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
+        }
+        
+        .winery-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .collapse-icon {
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+            margin-left: 15px;
+        }
+        
+        .winery-card.collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+        
+        .winery-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+            padding: 0 20px;
+        }
+        
+        .winery-card:not(.collapsed) .winery-content {
+            max-height: 5000px;
+            padding: 20px;
+        }
+        
+        .winery-links {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .winery-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 16px;
+            background: #f3f4f6;
+            color: #4B5563;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        
+        .winery-link:hover {
+            background: #e5e7eb;
+        }
+        
+        .winery-link.website {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+        
+        .winery-link.maps {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+        
+        .winery-link.yelp {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+        
+        .voting-section {
+            margin-bottom: 20px;
+        }
+        
+        .voting-criteria {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .criterion {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #8B5CF6;
+        }
+        
+        .criterion-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+        
+        .vote-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .vote-btn {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            background: white;
+            color: #6B7280;
+            border: 2px solid #E5E7EB;
+            transition: all 0.2s;
+        }
+        
+        .vote-btn:hover {
+            border-color: #8B5CF6;
+            color: #8B5CF6;
+        }
+        
+        .vote-btn.selected {
+            background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+            color: white;
+            border-color: transparent;
+        }
+        
+        .votes-summary {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #6B7280;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .vote-tag {
+            background: #E0E7FF;
+            color: #4338CA;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .day-preference {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #E5E7EB;
+        }
+        
+        .day-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .day-btn {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .day-votes-summary {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #6B7280;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .comments-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #E5E7EB;
+        }
+        
+        .comments-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #374151;
+        }
+        
+        .comment-form {
+            margin-bottom: 20px;
+        }
+        
+        .comment-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 10px;
+        }
+        
+        .comment-input:focus {
+            outline: none;
+            border-color: #8B5CF6;
+        }
+        
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .comment-item {
+            background: #F9FAFB;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #8B5CF6;
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .comment-author {
+            font-weight: 600;
+            color: #4B5563;
+            font-size: 0.9rem;
+        }
+        
+        .comment-time {
+            font-size: 0.8rem;
+            color: #9CA3AF;
+        }
+        
+        .comment-text {
+            color: #374151;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6B7280;
+        }
+        
+        .error {
+            background: #FEE2E2;
+            color: #991B1B;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .wineries-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .winery-header {
+                padding: 15px;
+            }
+            
+            .winery-name {
+                font-size: 1.2rem;
+            }
+            
+            .modal-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Identity Modal -->
+    <div class="modal-overlay" id="identityModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Who are you?</h2>
+            <p class="modal-subtitle">Select your name to start voting and commenting</p>
+            <select class="identity-select" id="identitySelect">
+                <option value="">-- Select your name --</option>
+                <!-- Options are populated dynamically from podSquadMembers array -->
+            </select>
+            <button class="modal-button" onclick="setIdentity()">Continue</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1>🍷 Pod Squad</h1>
+            <p class="subtitle">Anderson Valley Wine Trail 2025</p>
+        </header>
+        
+        <div class="user-badge" id="userBadge" style="display: none;">
+            <span class="user-badge-text">You are: <strong id="currentUserName"></strong></span>
+            <button class="change-identity-btn" onclick="showIdentityModal()">Change Identity</button>
+        </div>
+        
+        <div class="wineries-container" id="wineriesContainer">
+            <!-- Wineries will be rendered here -->
+        </div>
+    </div>
+    
+    <script>
+        // ============================================
+        // IMPORTANT: Update this list with your actual Pod Squad member names!
+        // ============================================
+        const podSquadMembers = [
+            'Mike',
+            'Allie',
+            'Katie',
+            'Nick'
+        ];
+        
+        // Winery data with links
+        const wineries = [
+            {
+                id: 'navarro',
+                name: 'Navarro Vineyards',
+                website: 'https://navarrowine.com',
+                maps: 'https://www.google.com/maps/place/Navarro+Vineyards',
+                yelp: 'https://www.yelp.com/biz/navarro-vineyards-philo',
+                description: 'Family-owned winery known for Pinot Noir and Gewürztraminer'
+            },
+            {
+                id: 'roederer',
+                name: 'Roederer Estate',
+                website: 'https://www.roedererestate.com',
+                maps: 'https://www.google.com/maps/place/Roederer+Estate',
+                yelp: 'https://www.yelp.com/biz/roederer-estate-philo',
+                description: 'French-owned sparkling wine producer'
+            },
+            {
+                id: 'handley',
+                name: 'Handley Cellars',
+                website: 'https://www.handleycellars.com',
+                maps: 'https://www.google.com/maps/place/Handley+Cellars',
+                yelp: 'https://www.yelp.com/biz/handley-cellars-philo',
+                description: 'Sustainable winery with beautiful gardens'
+            },
+            {
+                id: 'husch',
+                name: 'Husch Vineyards',
+                website: 'https://www.huschvineyards.com',
+                maps: 'https://www.google.com/maps/place/Husch+Vineyards',
+                yelp: 'https://www.yelp.com/biz/husch-vineyards-philo',
+                description: 'Oldest winery in Anderson Valley'
+            },
+            {
+                id: 'greenwood',
+                name: 'Greenwood Ridge Vineyards',
+                website: 'https://www.greenwoodridge.com',
+                maps: 'https://www.google.com/maps/place/Greenwood+Ridge+Vineyards',
+                yelp: 'https://www.yelp.com/biz/greenwood-ridge-vineyards-philo',
+                description: 'Mountain winery with stunning views'
+            },
+            {
+                id: 'philo',
+                name: 'Philo Ridge Vineyards',
+                website: 'https://www.philridge.com',
+                maps: 'https://www.google.com/maps/place/Philo+Ridge+Vineyards',
+                yelp: 'https://www.yelp.com/biz/philo-ridge-vineyards-philo',
+                description: 'Boutique winery with limited production'
+            }
+        ];
+        
+        // Voting criteria tailored for the group
+        const votingCriteria = [
+            { id: 'wine-quality', label: 'Wine Quality', options: ['Excellent', 'Good', 'Fair', 'Poor'] },
+            { id: 'atmosphere', label: 'Atmosphere/Vibe', options: ['Excellent', 'Good', 'Fair', 'Poor'] },
+            { id: 'kid-friendly', label: 'Kid-Friendly (3 year old)', options: ['Very Friendly', 'Somewhat Friendly', 'Not Friendly', 'Unknown'] },
+            { id: 'stroller-friendly', label: 'Stroller-Friendly', options: ['Very Easy', 'Somewhat Easy', 'Difficult', 'Unknown'] },
+            { id: 'outdoor-space', label: 'Outdoor Space/Gardens', options: ['Excellent', 'Good', 'Limited', 'None'] },
+            { id: 'food-options', label: 'Food Options', options: ['Full Menu', 'Snacks/Cheese', 'None', 'Unknown'] },
+            { id: 'parking', label: 'Parking Availability', options: ['Plenty', 'Limited', 'Difficult', 'Unknown'] },
+            { id: 'group-size', label: 'Suitable for Group of 7', options: ['Perfect', 'Comfortable', 'Tight', 'Too Small'] },
+            { id: 'value', label: 'Value for Money', options: ['Excellent', 'Good', 'Fair', 'Poor'] },
+            { id: 'overall-interest', label: 'Overall Interest Level', options: ['Must Visit', 'Interested', 'Maybe', 'Skip'] }
+        ];
+        
+        const days = ['Friday', 'Saturday', 'Sunday'];
+        
+        let currentUserName = null;
+        let allVotes = {}; // { wineryId: { criterionId: { value: [userNames] } } }
+        let allComments = {}; // { wineryId: [comments] }
+        let voteListeners = {};
+        let commentListeners = {};
+        
+        // Check for saved identity on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedIdentity = localStorage.getItem('wineTrailIdentity');
+            if (savedIdentity && podSquadMembers.includes(savedIdentity)) {
+                currentUserName = savedIdentity;
+                updateUserBadge();
+                initializeApp();
+            } else {
+                showIdentityModal();
+            }
+        });
+        
+        function showIdentityModal() {
+            const modal = document.getElementById('identityModal');
+            const select = document.getElementById('identitySelect');
+            
+            // Populate select with members
+            select.innerHTML = '<option value="">-- Select your name --</option>';
+            podSquadMembers.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member;
+                option.textContent = member;
+                if (member === currentUserName) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+            
+            modal.style.display = 'flex';
+        }
+        
+        function setIdentity() {
+            const select = document.getElementById('identitySelect');
+            const selectedName = select.value.trim();
+            
+            if (!selectedName) {
+                alert('Please select your name');
+                return;
+            }
+            
+            currentUserName = selectedName;
+            localStorage.setItem('wineTrailIdentity', selectedName);
+            document.getElementById('identityModal').style.display = 'none';
+            updateUserBadge();
+            initializeApp();
+        }
+        
+        function updateUserBadge() {
+            const badge = document.getElementById('userBadge');
+            const nameDisplay = document.getElementById('currentUserName');
+            if (currentUserName) {
+                nameDisplay.textContent = currentUserName;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        
+        function initializeApp() {
+            if (!currentUserName || !window.firebaseDb) {
+                console.error('Identity or Firebase not initialized');
+                return;
+            }
+            
+            renderWineries();
+            setupRealtimeListeners();
+        }
+        
+        function setupRealtimeListeners() {
+            // Set up real-time listeners for votes and comments for each winery
+            wineries.forEach(winery => {
+                // Listen for votes
+                const votesQuery = window.firebaseQuery(
+                    window.firebaseCollection(window.firebaseDb, 'votes'),
+                    window.firebaseWhere('wineryId', '==', winery.id)
+                );
+                
+                if (voteListeners[winery.id]) {
+                    voteListeners[winery.id](); // Unsubscribe old listener
+                }
+                
+                voteListeners[winery.id] = window.firebaseOnSnapshot(votesQuery, (snapshot) => {
+                    // Reset votes for this winery
+                    if (!allVotes[winery.id]) {
+                        allVotes[winery.id] = {};
+                    }
+                    
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const criterionId = data.criterionId || 'dayPreference';
+                        const value = data.dayPreference || data.value;
+                        const userName = data.userName;
+                        
+                        if (!allVotes[winery.id][criterionId]) {
+                            allVotes[winery.id][criterionId] = {};
+                        }
+                        if (!allVotes[winery.id][criterionId][value]) {
+                            allVotes[winery.id][criterionId][value] = [];
+                        }
+                        if (!allVotes[winery.id][criterionId][value].includes(userName)) {
+                            allVotes[winery.id][criterionId][value].push(userName);
+                        }
+                    });
+                    
+                    updateVotesDisplay(winery.id);
+                });
+                
+                // Listen for comments
+                const commentsQuery = window.firebaseQuery(
+                    window.firebaseCollection(window.firebaseDb, 'comments'),
+                    window.firebaseWhere('wineryId', '==', winery.id),
+                    window.firebaseOrderBy('timestamp', 'desc')
+                );
+                
+                if (commentListeners[winery.id]) {
+                    commentListeners[winery.id](); // Unsubscribe old listener
+                }
+                
+                commentListeners[winery.id] = window.firebaseOnSnapshot(commentsQuery, (snapshot) => {
+                    allComments[winery.id] = [];
+                    snapshot.forEach(doc => {
+                        allComments[winery.id].push(doc.data());
+                    });
+                    renderComments(winery.id);
+                });
+            });
+        }
+        
+        function updateVotesDisplay(wineryId) {
+            // Update vote buttons to show who voted for what
+            votingCriteria.forEach(criterion => {
+                const buttons = document.querySelectorAll(`[data-winery="${wineryId}"][data-criterion="${criterion.id}"]`);
+                buttons.forEach(btn => {
+                    const value = btn.textContent.trim();
+                    const votes = allVotes[wineryId]?.[criterion.id]?.[value] || [];
+                    const userVoted = votes.includes(currentUserName);
+                    
+                    btn.classList.toggle('selected', userVoted);
+                    
+                    // Update or create summary
+                    let summary = btn.parentElement.querySelector('.votes-summary');
+                    if (votes.length > 0) {
+                        if (!summary) {
+                            summary = document.createElement('div');
+                            summary.className = 'votes-summary';
+                            btn.parentElement.appendChild(summary);
+                        }
+                        summary.innerHTML = votes.map(name => 
+                            `<span class="vote-tag">${escapeHtml(name)}</span>`
+                        ).join('');
+                    } else if (summary) {
+                        summary.remove();
+                    }
+                });
+            });
+            
+            // Update day preferences
+            days.forEach(day => {
+                const btn = document.getElementById(`day-${wineryId}-${day}`);
+                if (btn) {
+                    const votes = allVotes[wineryId]?.['dayPreference']?.[day] || [];
+                    const userVoted = votes.includes(currentUserName);
+                    btn.classList.toggle('selected', userVoted);
+                    
+                    // Update summary
+                    let summary = btn.parentElement.parentElement.querySelector('.day-votes-summary');
+                    if (votes.length > 0) {
+                        if (!summary) {
+                            summary = document.createElement('div');
+                            summary.className = 'day-votes-summary';
+                            btn.parentElement.parentElement.appendChild(summary);
+                        }
+                        const allDayVotes = days.flatMap(d => allVotes[wineryId]?.['dayPreference']?.[d] || []);
+                        const uniqueVoters = [...new Set(allDayVotes)];
+                        summary.innerHTML = uniqueVoters.length > 0 
+                            ? `<strong>Voted by:</strong> ${uniqueVoters.map(name => `<span class="vote-tag">${escapeHtml(name)}</span>`).join('')}`
+                            : '';
+                    } else if (summary) {
+                        summary.remove();
+                    }
+                }
+            });
+        }
+        
+        // Save vote to Firebase
+        async function saveVote(wineryId, criterionId, value, dayPreference = null) {
+            if (!currentUserName || !window.firebaseDb) {
+                alert('Please select your identity first');
+                showIdentityModal();
+                return;
+            }
+            
+            try {
+                // Remove old vote for this user/criterion if it exists
+                // (We'll handle this by allowing multiple votes and showing all)
+                await window.firebaseAddDoc(
+                    window.firebaseCollection(window.firebaseDb, 'votes'),
+                    {
+                        userName: currentUserName,
+                        wineryId: wineryId,
+                        criterionId: criterionId,
+                        value: dayPreference ? null : value,
+                        dayPreference: dayPreference,
+                        timestamp: window.firebaseServerTimestamp()
+                    }
+                );
+                
+                // Real-time listener will update the UI
+            } catch (error) {
+                console.error('Error saving vote:', error);
+                alert('Error saving vote: ' + error.message);
+            }
+        }
+        
+        // Save comment to Firebase
+        async function saveComment(wineryId, commentText) {
+            if (!currentUserName || !window.firebaseDb) {
+                alert('Please select your identity first');
+                showIdentityModal();
+                return;
+            }
+            
+            if (!commentText.trim()) {
+                alert('Please enter a comment');
+                return;
+            }
+            
+            try {
+                await window.firebaseAddDoc(
+                    window.firebaseCollection(window.firebaseDb, 'comments'),
+                    {
+                        userName: currentUserName,
+                        wineryId: wineryId,
+                        text: commentText.trim(),
+                        timestamp: window.firebaseServerTimestamp()
+                    }
+                );
+                
+                // Clear input
+                document.getElementById(`commentInput-${wineryId}`).value = '';
+                // Real-time listener will update the UI
+            } catch (error) {
+                console.error('Error saving comment:', error);
+                alert('Error saving comment: ' + error.message);
+            }
+        }
+        
+        function renderWineries() {
+            const container = document.getElementById('wineriesContainer');
+            container.innerHTML = '';
+            
+            wineries.forEach(winery => {
+                const card = document.createElement('div');
+                card.className = 'winery-card collapsed'; // All cards collapsed by default
+                card.id = `winery-${winery.id}`;
+                
+                const votes = allVotes[winery.id] || {};
+                const comments = allComments[winery.id] || [];
+                
+                card.innerHTML = `
+                    <div class="winery-header" onclick="toggleWinery('${winery.id}')">
+                        <div class="winery-name">${winery.name}</div>
+                        <span class="collapse-icon">▼</span>
+                    </div>
+                    <div class="winery-content">
+                        <div class="winery-links">
+                            <a href="${winery.website}" target="_blank" class="winery-link website">🌐 Website</a>
+                            <a href="${winery.maps}" target="_blank" class="winery-link maps">🗺️ Google Maps</a>
+                            <a href="${winery.yelp}" target="_blank" class="winery-link yelp">⭐ Yelp</a>
+                        </div>
+                        <p style="margin-bottom: 20px; color: #6B7280; font-size: 0.9rem;">${winery.description}</p>
+                        
+                        <div class="voting-section">
+                            ${votingCriteria.map(criterion => {
+                                const userVote = votes[criterion.id] ? 
+                                    Object.keys(votes[criterion.id]).find(val => 
+                                        votes[criterion.id][val]?.includes(currentUserName)
+                                    ) : null;
+                                
+                                return `
+                                <div class="criterion">
+                                    <div class="criterion-label">${criterion.label}</div>
+                                    <div class="vote-buttons">
+                                        ${criterion.options.map(option => `
+                                            <button 
+                                                class="vote-btn ${userVote === option ? 'selected' : ''}"
+                                                data-winery="${winery.id}"
+                                                data-criterion="${criterion.id}"
+                                                onclick="handleVote('${winery.id}', '${criterion.id}', '${option}')"
+                                            >
+                                                ${option}
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                            }).join('')}
+                            
+                            <div class="day-preference">
+                                <div class="criterion-label">Preferred Day(s)</div>
+                                <div class="day-buttons">
+                                    ${days.map(day => {
+                                        const userVoted = votes['dayPreference']?.[day]?.includes(currentUserName) || false;
+                                        return `
+                                        <button 
+                                            class="day-btn vote-btn ${userVoted ? 'selected' : ''}"
+                                            id="day-${winery.id}-${day}"
+                                            onclick="handleDayPreference('${winery.id}', '${day}')"
+                                        >
+                                            ${day}
+                                        </button>
+                                    `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <div class="comments-title">Comments</div>
+                            <div class="comment-form">
+                                <textarea 
+                                    id="commentInput-${winery.id}"
+                                    class="comment-input" 
+                                    placeholder="Add a comment about ${winery.name}..."
+                                ></textarea>
+                                <button onclick="handleComment('${winery.id}')">Post Comment</button>
+                            </div>
+                            <div class="comments-list" id="comments-${winery.id}">
+                                ${renderCommentsList(comments)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+            
+            // Update votes display after rendering
+            wineries.forEach(winery => {
+                updateVotesDisplay(winery.id);
+            });
+        }
+        
+        function renderCommentsList(comments) {
+            if (!comments || comments.length === 0) {
+                return '<p style="color: #9CA3AF; font-style: italic;">No comments yet. Be the first to comment!</p>';
+            }
+            
+            return comments.map(comment => {
+                const time = comment.timestamp?.toDate ? comment.timestamp.toDate() : (comment.timestamp || new Date());
+                const timeStr = time.toLocaleString();
+                return `
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-author">${escapeHtml(comment.userName)}</span>
+                            <span class="comment-time">${timeStr}</span>
+                        </div>
+                        <div class="comment-text">${escapeHtml(comment.text)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderComments(wineryId) {
+            const commentsContainer = document.getElementById(`comments-${wineryId}`);
+            if (commentsContainer) {
+                const comments = allComments[wineryId] || [];
+                commentsContainer.innerHTML = renderCommentsList(comments);
+            }
+        }
+        
+        function toggleWinery(wineryId) {
+            const card = document.getElementById(`winery-${wineryId}`);
+            if (card) {
+                card.classList.toggle('collapsed');
+            }
+        }
+        
+        function handleVote(wineryId, criterionId, value) {
+            // Toggle vote - if already voted, remove it
+            const currentVotes = allVotes[wineryId]?.[criterionId]?.[value] || [];
+            if (currentVotes.includes(currentUserName)) {
+                // User already voted for this, remove vote
+                // Note: In a real app, you'd want to delete the vote document
+                // For now, we'll just save a new vote which will be handled by the listener
+                alert('To remove your vote, you would need to click it again. For now, your vote is saved.');
+            }
+            saveVote(wineryId, criterionId, value);
+        }
+        
+        function handleDayPreference(wineryId, day) {
+            const currentVotes = allVotes[wineryId]?.['dayPreference']?.[day] || [];
+            if (currentVotes.includes(currentUserName)) {
+                // Remove preference - in a real implementation, you'd delete the vote
+                alert('Day preference saved. To remove, you would need to manage votes in Firebase.');
+            } else {
+                saveVote(wineryId, 'dayPreference', null, day);
+            }
+        }
+        
+        function handleComment(wineryId) {
+            const input = document.getElementById(`commentInput-${wineryId}`);
+            if (input) {
+                saveComment(wineryId, input.value);
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
